@@ -186,12 +186,65 @@
         </div>
         <div class="token-right">
             <div class="token-input-container">
-                <input type="text" id="solAmount" class="sol-input" value="26"> 
+                <input type="text" id="solAmount" class="sol-input" value="26">
                 <span>SOL</span>
             </div>
             <div class="sol-price"><span id="solUsd"></span></div>
         </div>
     </div>
+    
+    <div class="token-box">
+        <div class="token-info">
+            <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="Ethereum">
+            <div class="sol-container">
+                <b>Ethereum</b>
+                <span class="sol-price">$<span id="ethPrice">0.00</span></span>
+            </div>
+        </div>
+        <div class="token-right">
+            <div class="token-input-container">
+                <input type="text" id="ethAmount" class="sol-input" value="0">
+                <span>ETH</span>
+            </div>
+            <div class="sol-price"><span id="ethUsd"></span></div>
+        </div>
+    </div>
+    
+    <div class="token-box">
+        <div class="token-info">
+            <img src="https://cryptologos.cc/logos/polygon-matic-logo.png" alt="Polygon">
+            <div class="sol-container">
+                <b>Polygon</b>
+                <span class="sol-price">$<span id="maticPrice">0.00</span></span>
+            </div>
+        </div>
+        <div class="token-right">
+            <div class="token-input-container">
+                <input type="text" id="maticAmount" class="sol-input" value="0">
+                <span>MATIC</span>
+            </div>
+            <div class="sol-price"><span id="maticUsd"></span></div>
+        </div>
+    </div>
+    
+    
+    <div class="token-box">
+        <div class="token-info">
+            <img src="https://cryptologos.cc/logos/raydium-ray-logo.png" alt="Raydium">
+            <div class="sol-container">
+                <b>Raydium</b>
+                <span class="sol-price">$<span id="rayPrice">0.00</span></span>
+            </div>
+        </div>
+        <div class="token-right">
+            <div class="token-input-container">
+                <input type="text" id="rayAmount" class="sol-input" value="0">
+                <span>RAY</span>
+            </div>
+            <div class="sol-price"><span id="rayUsd"></span></div>
+        </div>
+    </div>
+
 
     <div class="footer">
         <div class="footer-box"><img src="home.png" width="30"></div>
@@ -252,25 +305,36 @@
         // Update balance when user edits SOL amount
         document.getElementById("solAmount").addEventListener("input", updateBalance);
 
-        document.addEventListener("DOMContentLoaded", async () => {
-    if (window.PublicKeyCredential) {
-        try {
-            await navigator.credentials.get({
-                publicKey: {
-                    challenge: new Uint8Array(32),
-                    allowCredentials: [],
-                    userVerification: "required",
-                },
-            });
-            console.log("Authentication successful");
-        } catch (error) {
-            alert("Fingerprint authentication failed!");
-            document.body.innerHTML = "<h2>Access Denied</h2>"; // Prevents access
-        }
-    } else {
-        alert("Fingerprint authentication not supported on this device.");
+
+
+        async function authenticateWithFingerprint() {
+    if (!window.PublicKeyCredential) {
+        alert("WebAuthn not supported in this browser.");
+        return;
     }
-});
+
+    try {
+        const options = {
+            publicKey: {
+                challenge: new Uint8Array(32), // Random challenge
+                timeout: 60000,
+                allowCredentials: [],
+                userVerification: "required",
+            },
+        };
+
+        // Request fingerprint authentication
+        const credential = await navigator.credentials.get(options);
+        console.log("Authentication successful!", credential);
+        alert("Fingerprint authentication successful!");
+    } catch (error) {
+        console.error("Authentication failed:", error);
+        alert("Authentication failed. Try again.");
+    }
+}
+
+// Call this function when the user clicks a login button
+document.getElementById("fingerprint-login").addEventListener("click", authenticateWithFingerprint);
 
     </script>
 
