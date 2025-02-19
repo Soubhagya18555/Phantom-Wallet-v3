@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom Wallet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #151515;
+            color: white;
+            text-align: center;
+        }
+
+        .wallet-header {
+            background-color: #1e1e1e;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .balance {
+            font-size: 32px;
+            margin-top: 20px;
+        }
+
+        .balance-sub {
+            color: gray;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+
+        .action-box {
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #a2a2a2;
+        }
+
+        .action-box img {
+            width: 35px;
+            height: 35px;
+        }
+
+        .banner {
+            background: #3b2964;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .tokens {
+            margin-top: 10px;
+        }
+
+        .token-box {
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 15px;
+        }
+
+        .token-box img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .token-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .token-text {
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .sol-container {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .sol-price {
+            font-size: 12px;
+            color: gray;
+            margin-top: 3px;
+            text-align: left;
+        }
+
+        .sol-input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            width: 60px;
+            outline: none;
+            text-align: right;
+        }
+
+        .token-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Aligns price to the right */
+    text-align: right;
+}
+
+.token-input-container {
+    display: flex;
+    align-items: center; /* Ensures input and SOL stay in one line */
+    gap: 5px; /* Adds a little spacing between input and SOL */
+}
+
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #1e1e1e;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .footer-box {
+            text-align: center;
+            color: #a2a2a2;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wallet-header">
+        <span>Account 1</span>
+        <span><img src="menu.png" alt="menu" width="24"></span>
+
+    </div>
+
+    <div class="balance">$<span id="usdBalance">0.00</span></div>
+    <div class="balance-sub">+0.00 (+0.00%)</div>
+
+    <div class="actions">
+        <div class="action-box"><img src="receive.png"></div>
+        <div class="action-box"><img src="send.png"></div>
+        <div class="action-box"><img src="swap.png"></div>
+        <div class="action-box"><img src="usd.png"></div>
+    </div>
+
+    <div class="banner" onclick="convertToINR()">
+        View balances and prices in your local currency
+    </div>
+
+    <div class="token-box">
+        <div class="token-info">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png" alt="Solana">
+            <div class="sol-container">
+                <b>Solana</b>
+                <span class="sol-price">$<span id="solPrice">0.00</span></span>
+            </div>
+        </div>
+        <div class="token-right">
+            <div class="token-input-container">
+                <input type="text" id="solAmount" class="sol-input" value="26"> 
+                <span>SOL</span>
+            </div>
+            <div class="sol-price"><span id="solUsd"></span></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-box"><img src="home.png" width="30"></div>
+        <div class="footer-box"><img src="menu.png" width="30"></div>
+        <div class="footer-box"><img src="swap.png" width="30"></div>
+        <div class="footer-box"><img src="compas.png" width="30"></div>
+    </div>
+
+    <script>
+        let solPrice = 0; // Global variable for SOL price
+
+        // Fetch Solana Price
+        async function fetchSolanaPrice() {
+            try {
+                let response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+                let data = await response.json();
+                solPrice = data.solana.usd;
+                document.getElementById('solPrice').innerText = solPrice.toFixed(2);
+                updateBalance(); // Update balance after fetching price
+            } catch (error) {
+                console.error("Failed to fetch SOL price", error);
+            }
+        }
+
+        // Update balance when user edits SOL amount
+        function updateBalance() {
+            let solAmount = parseFloat(document.getElementById("solAmount").value) || 0;
+            let usdValue = (solAmount * solPrice).toFixed(2);
+
+            // Update both USD values
+            document.getElementById("solUsd").innerText = usdValue;
+            document.getElementById("usdBalance").innerText = usdValue;
+        }
+
+        // Convert all USD values to INR and hide banner
+        function convertToINR() {
+            let usdBalance = document.getElementById("usdBalance").innerText.trim();
+            let usdSolValue = document.getElementById("solUsd").innerText.trim();
+            let usdSolPrice = document.getElementById("solPrice").innerText.trim();
+
+            // Convert values
+            let inrBalance = (parseFloat(usdBalance) * 87.2).toFixed(2);
+            let inrSolValue = (parseFloat(usdSolValue) * 87.2).toFixed(2);
+            let inrSolPrice = (parseFloat(usdSolPrice) * 87.2).toFixed(2);
+
+            // Update UI
+            document.getElementById("usdBalance").innerText = `₹${inrBalance}`;
+            document.getElementById("solUsd").innerText = `₹${inrSolValue}`;
+            document.getElementById("solPrice").innerText = `₹${inrSolPrice}`;
+
+            // Hide banner
+            document.querySelector(".banner").style.display = "none";
+        }
+
+        // Fetch price on page load
+        fetchSolanaPrice();
+
+        // Update balance when user edits SOL amount
+        document.getElementById("solAmount").addEventListener("input", updateBalance);
+
+        document.addEventListener("DOMContentLoaded", async () => {
+    if (window.PublicKeyCredential) {
+        try {
+            await navigator.credentials.get({
+                publicKey: {
+                    challenge: new Uint8Array(32),
+                    allowCredentials: [],
+                    userVerification: "required",
+                },
+            });
+            console.log("Authentication successful");
+        } catch (error) {
+            alert("Fingerprint authentication failed!");
+            document.body.innerHTML = "<h2>Access Denied</h2>"; // Prevents access
+        }
+    } else {
+        alert("Fingerprint authentication not supported on this device.");
+    }
+});
+
+    </script>
+
+</body>
+</html>
